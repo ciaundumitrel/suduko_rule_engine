@@ -1,72 +1,21 @@
+from pprint import pprint
+
 from sudoku import Sudoku
+import rule_engine
+import itertools
 
 
-def get_all_items(x, y, z):
-    all_items = []
+def sum_gens(*gens):
+    valid = True
+    for gen in gens:
+        for _ in gen:
+            if _:
+                valid = False
 
-    seen = set()  # Keep track of seen values to avoid duplicates
-    for gen in (x, y, z):
-        for item in gen:
-            item_tuple = tuple(item.items()) if isinstance(item, dict) else item
-            if item_tuple not in seen:
-                all_items.append(item)
-                seen.add(item_tuple)
-    return all_items
+    return valid
 
 
-def get_len(r, c, s):
-    pos = 0
-    try:
-        for _ in r:
-            print(_)
-            pos += 1
-    except:
-        pass
-    try:
-        for _ in c:
-            print(_)
-
-            pos += 1
-    except:
-        pass
-
-    try:
-        for _ in s:
-            print(_)
-
-            pos += 1
-    except:
-        pass
-
-    return pos
-
-def get_pos(r, c, s):
-    pos = []
-    print(type(s))
-    for y in r:
-        print(y)
-    try:
-        for _ in r:
-            print(type(_))
-    except Exception as e:
-        print(e)
-    try:
-        for _ in c:
-            print(type(_))
-    except Exception as e:
-        print(e)
-    try:
-        for _ in s:
-            print(type(_))
-    except Exception as e:
-        print(e)
-
-    print(pos)
-    return pos
-
-
-if __name__ == "__main__":
-
+if __name__ == '__main__':
     sudoku = Sudoku(
         board=[
             [8, 4, 0, 0, 5, 0, 0, 0, 0],
@@ -77,33 +26,50 @@ if __name__ == "__main__":
             [0, 9, 8, 0, 0, 0, 1, 6, 0],
             [0, 0, 0, 5, 0, 3, 0, 0, 0],
             [0, 3, 0, 1, 0, 6, 0, 0, 7],
-            [0, 0, 0, 0, 2, 0, 0, 1, 3]]
+            [0, 0, 0, 0, 2, 0, 0, 1, 3]],
     )
-
-    possibilities = {}
+    possibilities = list()
     for i in range(9):
+        possibilities.append([])
         for j in range(9):
-            pos_len = 0
-            pos = []
-            sudoku_copy = sudoku.copy()
-            for y in range(1, 10):
-                if (i, j) not in sudoku.solved_cells:
-                    filtered_row = sudoku.filter_row(row=j, value=y)
-                    filtered_col = sudoku.filter_col(col=i, value=y)
-                    filtered_square = sudoku.filter_square(col=i, row=j, value=y)
-                    pos_len = get_len(filtered_row, filtered_col, filtered_square)
-                    pos = get_pos(filtered_row, filtered_col, filtered_square)
-            possibilities.update({(i, j): pos_len})
+            possibilities[i].append([])
 
-    print(possibilities)
+    possibilities_count = list()
+    for i in range(9):
+        possibilities_count.append([])
+        for j in range(9):
+            possibilities_count[i].append(0)
 
-    # while filtered:
-    #     try:
-    #         print(next(filtered))
-    #     except StopIteration:
-    #         print('done')
-    #         break
+    context = rule_engine.Context(type_resolver=rule_engine.type_resolver_from_dict({
+        'row': rule_engine.DataType.FLOAT,
+        'col': rule_engine.DataType.FLOAT,
+        'value': rule_engine.DataType.FLOAT,
+    }))
 
-    # cells = init_cells()
-    # print(cells)
-    # solve(cells)
+    def solve_sudoku(sudoku):
+        for row in range(0, 9):
+            for col in range(0, 9):
+                for value in range(1, 10):
+                    already_set = False
+
+                    for _ in sudoku.valid_move(row, col):
+                        already_set = True
+
+                    if not already_set:
+                        filter_row = sudoku.filter_row(row, value)
+                        filter_col = sudoku.filter_col(col, value)
+                        filter_square = sudoku.filter_square(row, col, value)
+                        is_valid = sum_gens(filter_row, filter_col, filter_square)
+
+                        if is_valid:
+                            possibilities_count[row][col] += 1
+                            possibilities[row][col].append(value)
+
+                        print(row, col, value)
+                        print(f"{is_valid=}")
+
+        sudoku.set_possibilities(possibilities)
+        sudoku.set_possibilities_count(possibilities_count)
+        pprint(possibilities)
+
+    solve_sudoku(sudoku)

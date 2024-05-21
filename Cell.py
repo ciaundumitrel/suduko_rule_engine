@@ -1,19 +1,16 @@
-from pprint import pprint
-
 
 class Cell:
-    def __init__(self, row=None, column=None, value=None, fixed=None):
+    def __init__(self, row=None, column=None, value=None, solved=None):
         self.column = column
         self.row = row
         self.value = value
-        self.fixed = fixed
+        self.solved = solved
 
     def as_dict(self):
         return {
-            'col': self.column,
             'row': self.row,
+            'col': self.column,
             'value': self.value,
-            'fixed': self.fixed,
         }
 
     def __str__(self):
