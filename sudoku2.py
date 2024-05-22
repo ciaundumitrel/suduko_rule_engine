@@ -13,16 +13,6 @@ class Sudoku:
             self.cells = cells
 
         self.solved_cells = []
-
-    def find_empty_cell_with_rules(self):
-        for row in range(9):
-            for col in range(9):
-                rule = Rule(f'row == {row} and col == {col} and value == 0 ')
-                match = rule.filter(self.cells)
-                if any(match) > 0:
-                    return row, col
-        return None, None
-
     
     def is_valid_move(self, row, col, num):
         return (self.check_row(row, num) and
