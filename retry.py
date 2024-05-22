@@ -76,3 +76,4 @@ class Sudoku:
 
                 self.matrix[row][col] = 0
         return False
+

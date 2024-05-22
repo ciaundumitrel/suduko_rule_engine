@@ -4,19 +4,25 @@ from sudoku import Sudoku
 import rule_engine
 import itertools
 
-
-def sum_gens(*gens):
-    valid = True
-    for gen in gens:
-        for _ in gen:
-            if _:
-                valid = False
-
-    return valid
-
-
 if __name__ == '__main__':
-    sudoku = Sudoku(
+    easy_sudoku = Sudoku(
+        board=[
+            [8, 2, 7, 3, 1, 6, 0, 4, 9],
+            [6, 4, 9, 7, 5, 0, 8, 3, 1],
+            [0, 3, 1, 4, 8, 9, 6, 7, 0],
+            [7, 0, 0, 6, 0, 1, 2, 0, 0],
+            [2, 1, 0, 5, 0, 7, 0, 0, 6],
+            [4, 9, 6, 0, 0, 0, 1, 5, 7],
+            [1, 8, 0, 0, 2, 4, 7, 0, 0],
+            [0, 6, 0, 0, 7, 3, 0, 1, 0],
+            [3, 7, 4, 1, 0, 0, 0, 0, 0]
+        ]
+    )
+
+    # merge super greu??????????????? gen vreo 5 - 10 minute
+
+
+    hard_sudoku = Sudoku(
         board=[
             [8, 4, 0, 0, 5, 0, 0, 0, 0],
             [3, 0, 0, 6, 0, 8, 0, 4, 0],
@@ -28,17 +34,6 @@ if __name__ == '__main__':
             [0, 3, 0, 1, 0, 6, 0, 0, 7],
             [0, 0, 0, 0, 2, 0, 0, 1, 3]],
     )
-    possibilities = list()
-    for i in range(9):
-        possibilities.append([])
-        for j in range(9):
-            possibilities[i].append([])
-
-    possibilities_count = list()
-    for i in range(9):
-        possibilities_count.append([])
-        for j in range(9):
-            possibilities_count[i].append(0)
 
     context = rule_engine.Context(type_resolver=rule_engine.type_resolver_from_dict({
         'row': rule_engine.DataType.FLOAT,
@@ -46,30 +41,13 @@ if __name__ == '__main__':
         'value': rule_engine.DataType.FLOAT,
     }))
 
-    def solve_sudoku(sudoku):
-        for row in range(0, 9):
-            for col in range(0, 9):
-                for value in range(1, 10):
-                    already_set = False
+    with open('log.txt', 'w') as f:
+        if easy_sudoku.solve_rules(f):
+            print("Solution found:")
+            for d in easy_sudoku.cells:
+                easy_sudoku.matrix[d['row']][d['col']] = d['value']
+            for line in easy_sudoku.matrix:
+                print(line)
 
-                    for _ in sudoku.valid_move(row, col):
-                        already_set = True
-
-                    if not already_set:
-                        filter_row = sudoku.filter_row(row, value)
-                        filter_col = sudoku.filter_col(col, value)
-                        filter_square = sudoku.filter_square(row, col, value)
-                        is_valid = sum_gens(filter_row, filter_col, filter_square)
-
-                        if is_valid:
-                            possibilities_count[row][col] += 1
-                            possibilities[row][col].append(value)
-
-                        print(row, col, value)
-                        print(f"{is_valid=}")
-
-        sudoku.set_possibilities(possibilities)
-        sudoku.set_possibilities_count(possibilities_count)
-        pprint(possibilities)
-
-    solve_sudoku(sudoku)
+        else:
+            print("There is no solution.")
