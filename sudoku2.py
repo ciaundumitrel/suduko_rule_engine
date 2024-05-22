@@ -20,14 +20,13 @@ class Sudoku:
                 self.check_square(row, col, num))
 
     def solve_rules(self, f, use_mrv = False):
-        row, col, posibilities = self.find_empty_cell_with_rules_mrv() # first cell with value 0
+        row, col, posibilities = self.find_empty_cell_with_rules_mrv()
         if row is None and col is None:
             return True
 
         startTime = time.time()
         for value in posibilities:
             if self.is_valid_move(row, col, value):
-                # remove = self.get_cells_without(row, col)
                 remove = [cell for cell in self.cells if cell["row"] == row and cell["col"] == col][0]
                 self.cells.remove(remove)
                 self.cells.append({'row': row, 'col': col, 'value': value, 'posibilities': set()})
