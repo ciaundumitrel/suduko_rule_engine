@@ -1,9 +1,6 @@
-import numpy as np
-
 from Cell import Cell
 from rule_engine import Rule
 import time as time
-
 
 class Sudoku:
     def __init__(self, board: [[]] = None, cells=None):
@@ -11,6 +8,7 @@ class Sudoku:
 
         if not cells:
             self.cells = self.init_cells(board)
+            self.init_posibilities()
         else:
             self.cells = cells
 
@@ -24,6 +22,7 @@ class Sudoku:
                 if any(match) > 0:
                     return row, col
         return None, None
+
     
     def is_valid_move(self, row, col, num):
         return (self.check_row(row, num) and
@@ -31,46 +30,26 @@ class Sudoku:
                 self.check_square(row, col, num))
 
     def solve_rules(self, f, use_mrv = False):
-        row, col = self.find_empty_cell_with_rules() # first cell with value 0
+        row, col, posibilities = self.find_empty_cell_with_rules_mrv() # first cell with value 0
         if row is None and col is None:
             return True
 
         startTime = time.time()
-        for value in range(1,10):
+        for value in posibilities:
             if self.is_valid_move(row, col, value):
-                remove = self.get_cells_without(row, col)
-                
+                # remove = self.get_cells_without(row, col)
+                remove = [cell for cell in self.cells if cell["row"] == row and cell["col"] == col][0]
                 self.cells.remove(remove)
-                self.cells.append({'row': row, 'col': col, 'value': value})
+                self.cells.append({'row': row, 'col': col, 'value': value, 'posibilities': set()})
                 f.write(f'wrote   [{row}:{col}] >> {value} \n')
                 if self.solve_rules(f):
                     print(time.time() - startTime)
                     return True
                 f.write(f'erased  [{row}:{col}] << {value} \n')
 
-                self.cells.append({'row': row, 'col': col, 'value': 0})
-                self.cells.remove({'row': row, 'col': col, 'value': value})
+                self.cells.append({'row': row, 'col': col, 'value': 0, 'posibilities': posibilities})
+                self.cells.remove({'row': row, 'col': col, 'value': value, 'posibilities': set()})
         return False
-
-    def find_posibilities(self, row, col):
-        if row is None or col is None:
-            return set()
-
-        results = set()
-        default_set = {1, 2, 3, 4, 5, 6, 7, 8, 9}
-
-        for index in range(0, 10):
-            row_values_rule = Rule(f'row == {row} and col == {index} and value != 0')
-            row_values_rule_match = row_values_rule.filter(self.cells)
-            for element in row_values_rule_match:
-                results.add(element["value"])
-
-            col_values_rule = Rule(f'row == {index} and col == {col} and value != 0')
-            col_values_rule_match = col_values_rule.filter(self.cells)
-            for element in col_values_rule_match:
-                results.add(element["value"])
-
-        return default_set - results
            
     def check_square(self, row, col, value):
         col = int(col / 3)
@@ -122,7 +101,40 @@ class Sudoku:
     def valid_move(self, row, col):
         rule = Rule(f' row == {row} and col == {col} and value != 0')
         return rule.filter(self.cells)
+    
+    def find_posibilities(self, row, col):
+        if row is None or col is None:
+            return set()
+
+        results = set()
+        default_set = {1, 2, 3, 4, 5, 6, 7, 8, 9}
+
+        for index in range(0, 9):
+            row_values_rule = Rule(f'row == {row} and col == {index} and value != 0')
+            row_values_rule_match = row_values_rule.filter(self.cells)
+            for element in row_values_rule_match:
+                results.add(element["value"])
+
+            col_values_rule = Rule(f'row == {index} and col == {col} and value != 0')
+            col_values_rule_match = col_values_rule.filter(self.cells)
+            for element in col_values_rule_match:
+                results.add(element["value"])
+        return default_set - results
+        
+    def find_empty_cell_with_rules_mrv(self):
+        sorted_data = sorted(self.cells, key=lambda x: len(x["posibilities"]))
+        for el in sorted_data:
+            if len(el["posibilities"]) > 0:
+                return el["row"], el["col"], el["posibilities"]
+            
+        return None, None, None
 
     @staticmethod
     def init_cells(board):
         return [Cell(i, j, board[i][j]).as_dict() for i in range(9) for j in range(9)]
+    
+    def init_posibilities(self):
+        rule = Rule(f'value == 0')
+        w_cells = rule.filter(self.cells)
+        for cell in w_cells:
+            cell["posibilities"] = self.find_posibilities(cell["row"], cell["col"])

@@ -2,7 +2,6 @@ from pprint import pprint
 
 from sudoku import Sudoku
 import rule_engine
-import itertools
 
 if __name__ == '__main__':
     easy_sudoku = Sudoku(
@@ -20,8 +19,6 @@ if __name__ == '__main__':
     )
 
     # merge super greu??????????????? gen vreo 5 - 10 minute
-
-
     hard_sudoku = Sudoku(
         board=[
             [8, 4, 0, 0, 5, 0, 0, 0, 0],
@@ -42,7 +39,7 @@ if __name__ == '__main__':
     }))
 
     with open('log.txt', 'w') as f:
-        if easy_sudoku.solve_rules(f):
+        if easy_sudoku.solve_rules(f, True):
             print("Solution found:")
             for d in easy_sudoku.cells:
                 easy_sudoku.matrix[d['row']][d['col']] = d['value']
