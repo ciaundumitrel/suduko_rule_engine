@@ -5,14 +5,18 @@ class Cell:
         self.row = row
         self.value = value
         self.solved = solved
+        self.posibilities = []
 
     def as_dict(self):
         return {
             'row': self.row,
             'col': self.column,
             'value': self.value,
+            'posibilities': self.posibilities
         }
 
     def __str__(self):
         return str(self.as_dict())
+    
+    
 
